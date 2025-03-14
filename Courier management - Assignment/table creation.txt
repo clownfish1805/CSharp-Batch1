@@ -1,0 +1,52 @@
+create database CourierDB;
+
+use CourierDB;
+
+create table [User] (UserID int primary key,
+    Name varchar(255),
+    Email varchar(255) unique,
+    Password varchar(255),
+    ContactNumber varchar(20),
+    Address text
+);
+
+create table Courier ( CourierID int primary key,
+    SenderName varchar(255),
+    SenderAddress text,
+    ReceiverName varchar(255),
+    ReceiverAddress text,
+    Weight decimal(5, 2),
+    Status varchar(50),
+    TrackingNumber varchar(20) unique,
+    DeliveryDate date
+);
+
+create table CourierServices (ServiceID int primary key,
+    ServiceName varchar(100),
+    Cost decimal(8,2)
+);
+
+create table Employee( EmployeeID int primary key,
+    Name varchar(255),
+    Email varchar(255) unique,
+    ContactNumber varchar(20),
+    Role varchar(50),
+    Salary decimal(10,2)
+);
+
+create table Location (
+    LocationID int primary key,
+    LocationName varchar(100),
+    Address text
+);
+
+
+create table Payment (
+    PaymentID int primary key,
+    CourierID int,
+    LocationID int,
+    Amount decimal(10,2),
+    PaymentDate date,
+    foreign key (CourierID) references Courier(CourierID),
+    foreign key (LocationID) references Location(LocationID)
+);
