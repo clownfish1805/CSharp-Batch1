@@ -1,0 +1,92 @@
+use CourierDB;
+
+insert into [User] (UserID, Name, Email, Password, ContactNumber, Address) values
+(1, 'John Doe', 'john.doe@example.com', 'password123', '9876543210', '123 Street'),
+(2, 'Alice', 'alice@example.com', 'pass123', '9876543211', '456 Avenue'),
+(3, 'Bob', 'bob@example.com', 'word123', '9876543212', '789 Road'),
+(4, 'Emma Brown', 'emma.brown@example.com', 'emma123', '9876543213', '123 nagar'),
+(5, 'Charlie', 'charlie@example.com', 'charlie123', '9876543214', '456 street');
+
+truncate table [User];
+
+insert into Courier (CourierID, SenderName, SenderAddress, ReceiverName, ReceiverAddress, Weight, Status, TrackingNumber, DeliveryDate) values
+(1, 'John Doe', '123 Street', 'Alice', '456 Avenue', 2.5, 'In Transit', 'TRK12345', '2025-03-20'),
+(2, 'Alice', '456 Avenue', 'Bob', '789 Road', 1.2, 'Delivered', 'TRK12346', '2025-03-18'),
+(3, 'Bob', '789 Road', 'Emma Brown', '123 nagar', 3.0, 'Pending', 'TRK12347', '2025-03-25'),
+(4, 'Emma Brown', '321 Blvd', 'Charlie', '456 street', 4.5, 'In Transit', 'TRK12348', '2025-03-22'),
+(5, 'Charlie', '654 Lane', 'John Doe', '123 Street', 2.0, 'Delivered', 'TRK12349', '2025-03-17');
+
+delete from Courier; --truncate can't be used. since it references to a foreign key in payment table
+
+insert into CourierServices (ServiceID, ServiceName, Cost) values
+(1, 'Standard Delivery', 10.00),
+(2, 'Express Delivery', 30.00),
+(3, 'Express Delivery', 30.00),
+(4, 'Standard Delivery', 10.00),
+(5, 'International Shipping', 50.00);
+
+insert into Employee (EmployeeID, Name, Email, ContactNumber, Role, Salary) values
+(1, 'Ravi', 'ravi@example.com', '9876543210', 'Manager', 70000.00),
+(2, 'Amit', 'amit@example.com', '9876543211', 'Delivery Executive', 40000.00),
+(3, 'Sneha', 'sneha@example.com', '9876543212', 'Customer Support', 35000.00),
+(4, 'Vikram', 'vikram@example.com', '9876543213', 'Sales Executive', 45000.00),
+(5, 'Pooja', 'pooja@example.com', '9876543214', 'Finance Officer', 60000.00);
+
+insert into Location (LocationID, LocationName, Address) values
+(1, 'Chennai', '123 Marina Beach Rd, Chennai'),
+(2, 'Coimbatore', '123 Gandhipuram St, Coimbatore'),
+(3, 'Madurai', '123 Meenakshi St, Madurai'),
+(4, 'Trichy', '123 Rockfort Rd, Trichy'),
+(5, 'Salem', '123 Steel Plant Rd, Salem');
+
+insert into Payment (PaymentID, CourierID, LocationID, Amount, PaymentDate) values
+(1, 1, 1, 10.00, '2025-03-20'),  
+(2, 2, 2, 30.00, '2025-03-18'),  
+(3, 3, 3, 30.00, '2025-03-16'),  
+(4, 4, 4, 10.00, '2025-03-14'),  
+(5, 5, 5, 50.00, '2025-03-12');
+
+
+--1.List all customers:
+select * from [User];
+
+--2.List all orders for a specific customer
+select * from Courier where CourierID=3; 
+select * from Courier where SenderName='Bob' or ReceiverName='Emma Brown';
+
+--3.List all Couriers
+select * from Courier;
+
+--4.List all packages for a specific order
+select * from Courier where TrackingNumber='TRK12345';
+
+--5.List all deliveries for a specific courier: 
+select * from Courier where TrackingNumber='TRK12345';
+
+--6.List all undelivered packages: 
+select * from Courier where Status='In Transit';
+select * from Courier where Status not like 'Delivered'; -- this give all pending also
+
+--7. List all packages that are scheduled for delivery today: 
+select * from Courier where DeliveryDate = CAST(GETDATE() AS DATE);  --getdate() -> gets the current date. it is then casted to delivery date
+
+--8.List all packages with a specific status
+select * from Courier where Status like 'Delivered';
+
+--9. Calculate the total number of packages for each courier
+select CourierID , Count(*) as totalpack from Courier group by CourierID;
+
+--10. Find the average delivery time for each courier 
+
+
+
+--11. List all packages with a specific weight range:
+select * from Courier where Weight>2.0;
+
+--12. Retrieve employees whose names contain 'John'
+select * from Employee where Name='John';
+
+--13. Retrieve all courier records with payments greater than $50. 
+select * from Courier where CourierID in (select CourierID from Payment where Amount>=50); --using subquery
+select * from Courier c inner join Payment p on c.CourierID=p.CourierID where p.Amount>=50; --using joins
+
