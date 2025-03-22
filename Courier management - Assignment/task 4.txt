@@ -1,0 +1,163 @@
+use CourierDB;
+
+select * from Employee;
+select * from Courier;
+select * from Location;
+select * from [User];
+select * from Payment;
+select * from CourierServices;
+
+--23. Retrieve Payments with Courier Information
+select p.CourierID, p.amount , p.paymentDate , c.senderName , c.senderAddress , c.ReceiverName , c.status , c.deliveryDate  
+from Payment p 
+join Courier c on p.CourierID=c.CourierID;
+
+--24. Retrieve Payments with Location Information
+select p.CourierID, p.locationId , p.amount , p.paymentDate , l.locationName , l.address from Payment p
+join Location l on p.LocationID = l.LocationID;
+
+--25. Retrieve Payments with Courier and Location Information
+select p.CourierID, p.locationId , p.amount , p.paymentDate , l.locationName , l.address , c.senderName , c.senderAddress , c.ReceiverName
+from Payment p join Courier c on p.CourierID=c.CourierID
+join Location l on p.LocationID=l.locationId;
+
+--26. List all payments with courier details
+select p.CourierID, p.amount , p.paymentDate , c.senderName , c.ReceiverName , c.status , c.deliveryDate  from Payment p 
+join Courier c on p.CourierID=c.CourierID;
+
+--27. Total payments received for each courier
+select p.CourierID, c.senderName , sum(p.amount) as tot_payment from Payment p 
+join Courier c on p.CourierID=c.CourierID 
+group by p.CourierID , c.SenderName;
+
+--28. List payments made on a specific date
+select * from Payment where PaymentDate='2025-03-14';
+
+
+--29. Get Courier Information for Each Payment
+select p.CourierID, p.amount , p.paymentDate , c.senderName , c.ReceiverName , c.status , c.deliveryDate  from Payment p 
+join Courier c on p.CourierID=c.CourierID;
+
+--30. Get Payment Details with Location
+select p.CourierID, p.locationId , p.amount , p.paymentDate , l.locationName , l.address from Payment p
+join Location l on p.LocationID = l.LocationID;
+
+--31. Calculating Total Payments for Each Courier
+select p.CourierID, c.senderName , sum(p.amount) as tot_payment from Payment p 
+join Courier c on p.CourierID=c.CourierID 
+group by p.CourierID , c.SenderName;
+
+--32. List Payments Within a Date Range
+select * from payment where paymentDate between '2025-03-15' and '2025-03-20';
+
+--33. Retrieve a list of all users and their corresponding courier records, including cases where there are no matches on either side
+select u.name , u.email ,u.contactnumber , u.address , c.status from [User] u
+full outer join courier c on u.name = c.SenderName;
+
+
+--34. Retrieve a list of all couriers and their corresponding services, including cases where there are no matches on either side
+select c.courierid, c.sendername, cs.serviceid, cs.ServiceName  from courier c  
+full outer join CourierServices cs on c.CourierID = cs.serviceid;
+
+-- 36. List all users and all courier services, showing all possible combinations.
+select * from [User] 
+cross join CourierServices;
+
+--35. Retrieve a list of all employees and their corresponding payments, including cases where there are no matches on either side 
+alter table Payment add employeeId INT;
+update Payment
+set EmployeeID = (
+    select c.EmployeeID 
+    from Courier c 
+    where c.CourierID = Payment.CourierID
+);
+select * from Payment
+
+select e.employeeid, e.name, p.paymentid, p.amount, p.courierid  
+from employee e  
+full outer join payment p on e.employeeid = p.employeeid;
+
+
+--37. List all employees and all locations, showing all possible combinations:
+select * from employee 
+cross join Location;
+
+--38. Retrieve a list of couriers and their corresponding sender information (if available)
+select courierId , senderName , status from Courier;
+
+--39. Retrieve a list of couriers and their corresponding receiver information (if available):
+select c.courierid, c.sendername, u.userId, u.name  
+from courier c  
+left join [User] u on c.SenderName = u.Name;
+
+--40. Retrieve a list of couriers along with the courier service details (if available):
+select c.courierId , c.sendername , cs.servicename , cs.cost from Courier c
+left join CourierServices cs on c.CourierID=cs.ServiceID;
+
+--41. Retrieve a list of employees and the number of couriers assigned to each employee:
+alter table courier add employeeId INT;
+update courier set employeeid = 4  where courierid = 1;  
+update courier set employeeid = 2  where courierid = 2;
+update courier set employeeid = 4  where courierid = 3;
+update courier set employeeid = 2  where courierid = 4;
+update courier set employeeid = 4 where courierid = 5;
+select * from Courier;
+select e.employeeid, e.name, count(c.courierid) as total_couriers  
+from employee e  
+left join courier c on e.employeeid = c.employeeid
+group by e.employeeid, e.name;
+
+
+--42. Retrieve a list of locations and the total payment amount received at each location:
+select l.locationId, l.locationName, sum(p.amount) as tot_pay from Location l
+left join Payment p on l.locationId=p.LocationID
+group by l.LocationID , l.LocationName;
+
+--43. Retrieve all couriers sent by the same sender (based on SenderName).
+select c1.* from courier c1
+join courier c2 on c1.sendername = c2.sendername and c1.courierid <> c2.courierid  --no records as per ques
+order by c1.sendername, c1.courierid;
+
+
+--45. Retrieve all payments made for couriers sent from the same location.
+alter table courier add LocationId int;
+
+update Courier set LocationId = l.LocationId from Courier c
+join Location l on cast(l.Address AS VARCHAR(255)) = cast(c.SenderAddress AS VARCHAR(255));
+
+select * from Courier;
+
+alter table Courier alter column SenderAddress text;
+update Courier
+set SenderAddress = 
+    case 
+        when CourierID = 1 then '123 Marina Beach Rd, Chennai'
+        when CourierID = 2 then '123 Gandhipuram St, Coimbatore'
+        when CourierID = 3 then '123 Meenakshi St, Madurai'
+        when CourierID = 4 then '123 Rockfort Rd, Trichy'
+        when CourierID = 5 then '123 Steel Plant Rd, Salem'
+    end
+where CourierID in (1, 2, 3, 4, 5);
+
+select p.* from Payment p
+join Courier c1 on p.CourierID = c1.CourierID
+join Courier c2 on c1.LocationId = c2.LocationId and c1.CourierID <> c2.CourierID;
+
+
+--44. List all employees who share the same role.
+update Employee set role='delivery executive' where EmployeeID=4;
+select e1.employeeid, e1.name, e1.role from employee e1
+join employee e2 on e1.role = e2.role and e1.employeeid <> e2.employeeid 
+order by e1.role, e1.employeeid;
+
+--46. Retrieve all couriers sent from the same location (based on SenderAddress).
+ALTER TABLE Courier ALTER COLUMN SenderAddress VARCHAR(255);
+select c1.* from Courier c1 join Courier c2 on c1.SenderAddress = c2.SenderAddress  
+where c1.CourierID <> c2.CourierID;
+
+--47. List employees and the number of couriers they have delivered:
+SELECT e.EmployeeID, e.Name, COUNT(c.CourierID) AS CourierCount
+FROM Employee e
+LEFT JOIN Courier c ON e.EmployeeID = c.EmployeeID
+GROUP BY e.EmployeeID, e.Name;
+
